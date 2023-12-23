@@ -30,7 +30,6 @@ def get_bert(norm_text, word2ph, language, device, style_text=None, style_weight
     return bert
 
 
-
 def init_openjtalk():
     import platform
 
