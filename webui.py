@@ -1,6 +1,7 @@
 # flake8: noqa: E402
-import os
 import logging
+import os
+
 import re_matching
 from tools.sentence import split_by_language
 
@@ -19,7 +20,6 @@ import torch
 import utils
 from infer import infer, latest_version, get_net_g, infer_multilang
 import gradio as gr
-import webbrowser
 import numpy as np
 from config import config
 from tools.translate import translate
@@ -33,19 +33,15 @@ if device == "mps":
 
 
 def generate_audio(
-    slices,
-    sdp_ratio,
-    noise_scale,
-    noise_scale_w,
-    length_scale,
-    speaker,
-    language,
-    reference_audio,
-    emotion,
-    style_text,
-    style_weight,
-    skip_start=False,
-    skip_end=False,
+        slices,
+        sdp_ratio,
+        noise_scale,
+        noise_scale_w,
+        length_scale,
+        speaker,
+        language,
+        style_text,
+        style_weight,
 ):
     audio_list = []
     # silence = np.zeros(hps.data.sampling_rate // 2, dtype=np.int16)
@@ -55,8 +51,6 @@ def generate_audio(
             skip_end = idx != len(slices) - 1
             audio = infer(
                 piece,
-                reference_audio=reference_audio,
-                emotion=emotion,
                 sdp_ratio=sdp_ratio,
                 noise_scale=noise_scale,
                 noise_scale_w=noise_scale_w,
@@ -77,17 +71,13 @@ def generate_audio(
 
 
 def generate_audio_multilang(
-    slices,
-    sdp_ratio,
-    noise_scale,
-    noise_scale_w,
-    length_scale,
-    speaker,
-    language,
-    reference_audio,
-    emotion,
-    skip_start=False,
-    skip_end=False,
+        slices,
+        sdp_ratio,
+        noise_scale,
+        noise_scale_w,
+        length_scale,
+        speaker,
+        language,
 ):
     audio_list = []
     # silence = np.zeros(hps.data.sampling_rate // 2, dtype=np.int16)
@@ -97,8 +87,6 @@ def generate_audio_multilang(
             skip_end = idx != len(slices) - 1
             audio = infer_multilang(
                 piece,
-                reference_audio=reference_audio,
-                emotion=emotion,
                 sdp_ratio=sdp_ratio,
                 noise_scale=noise_scale,
                 noise_scale_w=noise_scale_w,
@@ -117,20 +105,18 @@ def generate_audio_multilang(
 
 
 def tts_split(
-    text: str,
-    speaker,
-    sdp_ratio,
-    noise_scale,
-    noise_scale_w,
-    length_scale,
-    language,
-    cut_by_sent,
-    interval_between_para,
-    interval_between_sent,
-    reference_audio,
-    emotion,
-    style_text,
-    style_weight,
+        text: str,
+        speaker,
+        sdp_ratio,
+        noise_scale,
+        noise_scale_w,
+        length_scale,
+        language,
+        cut_by_sent,
+        interval_between_para,
+        interval_between_sent,
+        reference_audio,
+        emotion,
 ):
     while text.find("\n\n") != -1:
         text = text.replace("\n\n", "\n")
@@ -150,8 +136,6 @@ def tts_split(
                 language,
                 reference_audio,
                 emotion,
-                style_text,
-                style_weight,
             )
             silence = np.zeros((int)(44100 * interval_between_para), dtype=np.int16)
             audio_list.append(silence)
@@ -170,8 +154,6 @@ def tts_split(
                     language,
                     reference_audio,
                     emotion,
-                    style_text,
-                    style_weight,
                 )
                 silence = np.zeros((int)(44100 * interval_between_sent))
                 audio_list_sent.append(silence)
@@ -228,17 +210,15 @@ def process_auto(text):
 
 
 def process_text(
-    text: str,
-    speaker,
-    sdp_ratio,
-    noise_scale,
-    noise_scale_w,
-    length_scale,
-    language,
-    reference_audio,
-    emotion,
-    style_text=None,
-    style_weight=0,
+        text: str,
+        speaker,
+        sdp_ratio,
+        noise_scale,
+        noise_scale_w,
+        length_scale,
+        language,
+        reference_audio,
+        emotion,
 ):
     audio_list = []
     if language == "mix":
@@ -262,8 +242,6 @@ def process_text(
                     length_scale,
                     _speaker,
                     _lang,
-                    reference_audio,
-                    emotion,
                 )
             )
     elif language.lower() == "auto":
@@ -278,8 +256,6 @@ def process_text(
                 length_scale,
                 speaker,
                 _lang,
-                reference_audio,
-                emotion,
             )
         )
     else:
@@ -294,29 +270,23 @@ def process_text(
                 language,
                 reference_audio,
                 emotion,
-                style_text,
-                style_weight,
             )
         )
     return audio_list
 
 
 def tts_fn(
-    text: str,
-    speaker,
-    sdp_ratio,
-    noise_scale,
-    noise_scale_w,
-    length_scale,
-    language,
-    reference_audio,
-    emotion,
-    prompt_mode,
-    style_text=None,
-    style_weight=0,
+        text: str,
+        speaker,
+        sdp_ratio,
+        noise_scale,
+        noise_scale_w,
+        length_scale,
+        language,
+        reference_audio,
+        emotion,
+        prompt_mode,
 ):
-    if style_text == "":
-        style_text = None
     if prompt_mode == "Audio prompt":
         if reference_audio == None:
             return ("Invalid audio prompt", None)
@@ -335,8 +305,6 @@ def tts_fn(
         language,
         reference_audio,
         emotion,
-        style_text,
-        style_weight,
     )
 
     audio_concat = np.concatenate(audio_list)
@@ -445,8 +413,8 @@ if __name__ == "__main__":
                 with gr.Accordion("融合文本语义", open=False):
                     gr.Markdown(
                         value="使用辅助文本的语意来辅助生成对话（语言保持与主文本相同）\n\n"
-                        "**注意**：不要使用**指令式文本**（如：开心），要使用**带有强烈情感的文本**（如：我好快乐！！！）\n\n"
-                        "效果较不明确，留空即为不使用该功能"
+                              "**注意**：不要使用**指令式文本**（如：开心），要使用**带有强烈情感的文本**（如：我好快乐！！！）\n\n"
+                              "效果较不明确，留空即为不使用该功能"
                     )
                     style_text = gr.Textbox(label="辅助文本")
                     style_weight = gr.Slider(
@@ -549,6 +517,4 @@ if __name__ == "__main__":
             outputs=[language, text],
         )
 
-    print("推理页面已开启!")
-    webbrowser.open(f"http://127.0.0.1:{config.webui_config.port}")
-    app.launch(share=config.webui_config.share, server_port=config.webui_config.port)
+    app.launch(share=config.webui_config.share, server_name='0.0.0.0', server_port=config.webui_config.port)

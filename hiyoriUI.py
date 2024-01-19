@@ -203,8 +203,6 @@ if __name__ == "__main__":
         language: str,
         auto_translate: bool,
         auto_split: bool,
-        emotion: Optional[Union[int, str]] = None,
-        reference_audio=None,
         style_text: Optional[str] = None,
         style_weight: float = 0.7,
     ) -> Union[Response, Dict[str, any]]:
@@ -243,13 +241,6 @@ if __name__ == "__main__":
                     "detail": f"请勿同时使用language = {language}与auto_translate模式",
                 }
             text = trans.translate(Sentence=text, to_Language=language.lower())
-        if reference_audio is not None:
-            ref_audio = BytesIO(await reference_audio.read())
-            # 2.2 适配
-            if loaded_models.models[model_id].version == "2.2":
-                ref_audio, _ = librosa.load(ref_audio, 48000)
-        else:
-            ref_audio = reference_audio
 
         # 改动：增加使用 || 对文本进行主动切分
         # 切分优先级： || → auto/mix → auto_split
@@ -328,8 +319,6 @@ if __name__ == "__main__":
                         hps=loaded_models.models[model_id].hps,
                         net_g=loaded_models.models[model_id].net_g,
                         device=loaded_models.models[model_id].device,
-                        emotion=emotion,
-                        reference_audio=ref_audio,
                         style_text=style_text,
                         style_weight=style_weight,
                     )
@@ -361,8 +350,6 @@ if __name__ == "__main__":
         language: str = Query(None, description="语言"),  # 若不指定使用语言则使用默认值
         auto_translate: bool = Query(False, description="自动翻译"),
         auto_split: bool = Query(False, description="自动切分"),
-        emotion: Optional[Union[int, str]] = Query(None, description="emo"),
-        reference_audio: UploadFile = File(None),
         style_text: Optional[str] = Form(None, description="风格文本"),
         style_weight: float = Query(0.7, description="风格权重"),
     ):
@@ -382,8 +369,6 @@ if __name__ == "__main__":
             language=language,
             auto_translate=auto_translate,
             auto_split=auto_split,
-            emotion=emotion,
-            reference_audio=reference_audio,
             style_text=style_text,
             style_weight=style_weight,
         )
